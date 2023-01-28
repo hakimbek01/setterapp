@@ -3,6 +3,7 @@ import 'package:setterapp/pages/signup_page.dart';
 import 'package:setterapp/service/auth_service.dart';
 
 import 'home_page.dart';
+import 'feed_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(Duration(seconds: 3));
     bool isLogged=AuthService.currentUser();
     if (!isLogged || isLogged==null) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUp(),));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpPage(),));
     }
     else {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(),));

@@ -6,9 +6,9 @@ class StoreService {
   static final _storage=FirebaseStorage.instance.ref();
   static const _folder="post_image";
 
-  static Future<List<String>?> uploadImage(List _image) async {
+  static Future<List> uploadImage(List _image) async {
 
-    List<String>? list=[];
+    List? list=[];
 
 
     for (var a in _image) {

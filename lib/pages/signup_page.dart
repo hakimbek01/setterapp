@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../service/auth_service.dart';
 import 'home_page.dart';
+import 'feed_page.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({Key? key}) : super(key: key);
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({Key? key}) : super(key: key);
 
   @override
-  State<SignUp> createState() => _SignUpState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _SignUpPageState extends State<SignUpPage> {
   TextEditingController _email=TextEditingController();
   TextEditingController _password=TextEditingController();
 
-  Future<void> signUpFunk() async {
+  Future<void> SignUpPageFunk() async {
     String email=_email.text;
     String password=_password.text;
 
@@ -52,7 +53,7 @@ class _SignUpState extends State<SignUp> {
               ElevatedButton(
                 onPressed: (){
                   print("object");
-                  signUpFunk();
+                  SignUpPageFunk();
                 },
                 child: Text("Sign Up"),
               )

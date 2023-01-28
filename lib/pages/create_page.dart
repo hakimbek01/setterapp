@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:setterapp/model/product_model.dart';
+import 'package:setterapp/pages/feed_page.dart';
 import 'package:setterapp/service/rtdb_service.dart';
 
 import '../service/store_service.dart';
@@ -20,6 +22,7 @@ class _CreatePageState extends State<CreatePage> {
   final TextEditingController _price=TextEditingController();
   final TextEditingController _content=TextEditingController();
   final TextEditingController _createCategory=TextEditingController();
+  String priceType="USD";
   String _category="Category";
   final List _imagesList=[];
 
@@ -29,12 +32,11 @@ class _CreatePageState extends State<CreatePage> {
   bool typePrice=false;
 
   List<PopupMenuEntry<dynamic>> popupMenuItem = [];
-  List categories = [
-    "Texnika",
-    "KiyiMlar",
-  ];
-  void createPopupMenu() {
+  List categories = [];
 
+
+  void createPopupMenu() {
+    popupMenuItem = [];
     for (var item in categories) {
       popupMenuItem.add(PopupMenuItem(
         onTap: () {
@@ -45,7 +47,6 @@ class _CreatePageState extends State<CreatePage> {
         child: Text(item),
       ));
     }
-
       popupMenuItem.add(
           PopupMenuItem(
             onTap: () async {
@@ -56,7 +57,11 @@ class _CreatePageState extends State<CreatePage> {
                   dialogType: DialogType.noHeader,
                   btnOkOnPress: () async {
                     setState(() {
-                      categories.add(_createCategory.text);
+                      if (_createCategory.text.isEmpty) return;
+                      _category=_createCategory.text;
+                      categories.add(_category);
+                      createPopupMenu();
+                      addCategory();
                     });
                   },
                   btnCancelOnPress: () {},
@@ -74,14 +79,25 @@ class _CreatePageState extends State<CreatePage> {
                 ).show();
               });
             },
-            child: Text("Category qo'shish +"),
+            child: Column(
+              children: [
+                Container(color: Colors.blue, width: double.infinity, height: 1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Category qo'shish",style: TextStyle(fontWeight: FontWeight.w700),),
+                    Icon(Icons.add)
+                  ],
+                )
+              ],
+            ),
           )
       );
   }
 
   @override
   void initState() {
-    createPopupMenu();
+    getCategory();
     super.initState();
   }
 
@@ -180,7 +196,7 @@ class _CreatePageState extends State<CreatePage> {
               ),
               SizedBox(height: 20,),
               // product data
-              Container(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   children: [
@@ -188,7 +204,9 @@ class _CreatePageState extends State<CreatePage> {
                     TextField(
                       controller: _name,
                       decoration: InputDecoration(
-                          label: Text("Name")
+                        fillColor: Colors.grey.shade200,
+                        filled: true,
+                        label: Text("Name")
                       ),
                     ),
                     SizedBox(height: 10,),
@@ -198,20 +216,26 @@ class _CreatePageState extends State<CreatePage> {
                       maxLines: 2,
                       minLines: 1,
                       decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
                         label: Text("Description")
                       ),
                     ),
+
                     SizedBox(height: 10,),
                     //product price
                     TextField(
                       controller: _price,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
                         label: Text("Price"),
                         suffixIcon: GestureDetector(
                           onTap: () {
                             setState(() {
                               typePrice=!typePrice;
+                              typePrice? priceType="UZS":priceType="USD";
                             });
                           },
                           child: Container(
@@ -273,16 +297,32 @@ class _CreatePageState extends State<CreatePage> {
   }
 
 
+  void addCategory() async {
+    print("$categories");
+    await RTDBService.addCategory(categories);
+  }
+
+  void getCategory() async {
+    await RTDBService.getCategory().then((value) => {
+      setState((){
+        categories=value;
+        print(categories);
+      })
+    });
+    createPopupMenu();
+  }
 
   void addProduct() async {
     String name=_name.text;
     String content=_content.text;
-    String price=_price.text;
+    String price="${_price.text} $priceType";
     List? images= await StoreService.uploadImage(_imagesList);
     if (name.isEmpty || content.isEmpty || price.isEmpty) return;
-    Product product=Product(category: _category,price: price,id: "de",name: name,content: content,imgUrls: images);
+    Product product=Product(category: _category,price: price,id: "de",name: name,content: content,imgUrls: images,isAvailable: true);
 
-    RTDBService.addPost(product);
+    RTDBService.addProduct(product).then((value) =>{
+      Navigator.pop(context)
+    });
   }
 
   void openGallery() async {

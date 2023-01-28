@@ -1,109 +1,143 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:setterapp/pages/create_page.dart';
-import 'package:setterapp/pages/signup_page.dart';
-import 'package:setterapp/service/auth_service.dart';
-import 'package:setterapp/service/rtdb_service.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:setterapp/pages/feed_page.dart';
+import 'package:setterapp/pages/products_page.dart';
+import 'package:setterapp/pages/profile_page.dart';
+import 'package:setterapp/pages/search_page.dart';
 
-import '../model/product_model.dart';
+
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
-
   @override
-  State<HomePage> createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
-  List<Product> items=[];
-
-  void getPost() {
-    RTDBService.getPost().then((value) {
-      setState(() {
-        items=value;
-      });
-    });
-  }
-
-  @override
-  void initState() {
-    getPost();
-    super.initState();
-  }
+  int _selectedIndex = 0;
+  PageController _pageController=PageController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        iconTheme: IconThemeData(
-          color: Colors.black
-        ),
-        title: Text("Admin Panel",style: TextStyle(color: Colors.black),),
-        actions: [
-          IconButton(
-            onPressed: () {
-              AuthService.signOut().then((value) {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUp(),));
-              });
-            },
-            icon: Icon(Icons.logout),
-          )
-        ],
-      ),
-      body: ListView(
-        children: items.map((e) {
-          return itemOfPost(e);
-        }).toList(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(context, MaterialPageRoute(builder: (context) => CreatePage(),));
-          getPost();
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (value) {
+          setState(() {
+            _selectedIndex=value;
+          });
         },
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15),side: BorderSide(color: Colors.black,width: 1)),
-        child: Icon(Icons.add,color: Colors.black,),
-      ),
-    );
-  }
-
-  Widget itemOfPost(Product product) {
-    return Container(
-      height: MediaQuery.of(context).size.width,
-      margin: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-      decoration: BoxDecoration(
-        border: Border.all(width: 1,color: Colors.blue),
-        borderRadius: BorderRadius.circular(20)
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              physics: PageScrollPhysics(),
-              scrollDirection: Axis.horizontal,
-              itemCount: 1,
-              itemBuilder: (context, index) {
-                print(product.name);
-                print(product.content);
-                print(product.price);
-                print(product.category);
-                print(product.id);
-                print(product.imgUrls![index]);
-                return Container(
-                  child: CachedNetworkImage(
-                    imageUrl: product.imgUrls![index],
-                    fit: BoxFit.cover,
-                  ),
-                );
-              },
-            )
-          ),
+          FeedPage(),
+          SearchPage(),
+          ProductsPage(),
+          ProfilePage()
         ],
       ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 20,
+              color: Colors.black.withOpacity(.1),
+            )
+          ],
+        ),
+        width: double.infinity,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
+              child: GNav(
+                rippleColor: Colors.grey[300]!,
+                hoverColor: Colors.grey[100]!,
+                gap: 8,
+                activeColor: Colors.black,
+                iconSize: 24,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                duration: Duration(milliseconds: 400),
+                tabBackgroundColor: Colors.grey.shade200,
+                color: Colors.black,
+                tabs: [
+                  GButton(
+                    icon: Icons.home,
+                    text: 'Home',
+                    iconActiveColor: Colors.white,
+                    textStyle: TextStyle(color: Colors.white),
+                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
+                    backgroundGradient: LinearGradient(
+                        begin: Alignment.bottomLeft,
+                        end: Alignment.topRight,
+                        tileMode: TileMode.mirror,
+                        colors: [
+                          Color.fromRGBO(252, 175, 69, .8),
+                          Color.fromRGBO(245, 96, 64, .9)
+                        ]
+                    ),
+                  ),
+                  GButton(
+                    icon: Icons.search,
+                    text: 'Search',
+                    iconActiveColor: Colors.white,
+                    textStyle: TextStyle(color: Colors.white),
+                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
+                    backgroundGradient: LinearGradient(
+                        begin: Alignment.bottomLeft,
+                        end: Alignment.topRight,
+                        tileMode: TileMode.mirror,
+                        colors: [
+                          Color.fromRGBO(252, 175, 69, .8),
+                          Color.fromRGBO(245, 96, 64, .9)
+                        ]
+                    ),
+                  ),
+                  GButton(
+                    text: "Products",
+                    icon: Icons.shopping_bag,
+                    iconActiveColor: Colors.white,
+                    textStyle: TextStyle(color: Colors.white),
+                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.bottomLeft,
+                      end: Alignment.topRight,
+                      tileMode: TileMode.mirror,
+                      colors: [
+                        Color.fromRGBO(252, 175, 69, .8),
+                        Color.fromRGBO(245, 96, 64, .9)
+                      ]
+                    ),
+                  ),
+                  GButton(
+                    text: "Profile",
+                    icon: CupertinoIcons.person_crop_circle,
+                    iconActiveColor: Colors.white,
+                    textStyle: TextStyle(color: Colors.white),
+                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.bottomLeft,
+                      end: Alignment.topRight,
+                      tileMode: TileMode.mirror,
+                      colors: [
+                        Color.fromRGBO(252, 175, 69, .8),
+                        Color.fromRGBO(245, 96, 64, .9)
+                      ]
+                    ),
+                  ),
+                ],
+                selectedIndex: _selectedIndex,
+                onTabChange: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                    _pageController.animateToPage(_selectedIndex, duration: Duration(milliseconds: 70), curve: Curves.easeIn);
+                  });
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
-
 }
