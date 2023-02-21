@@ -3,26 +3,21 @@ import 'dart:async';
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:setterapp/model/admin_model.dart';
-import 'package:setterapp/pages/signin_page.dart';
-import 'package:setterapp/service/data_service.dart';
+import 'package:setterapp/pages/signup_page.dart';
 
 import '../service/auth_service.dart';
 import 'home_page.dart';
-import 'feed_page.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({Key? key}) : super(key: key);
+class SignInPage extends StatefulWidget {
+  const SignInPage({Key? key}) : super(key: key);
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  State<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignInPageState extends State<SignInPage> {
   TextEditingController _email=TextEditingController();
   TextEditingController _password=TextEditingController();
-  TextEditingController _confirmPassword=TextEditingController();
-  TextEditingController _name=TextEditingController();
   Timer? timer;
   FlipCardController? _flipController;
   @override
@@ -31,18 +26,14 @@ class _SignUpPageState extends State<SignUpPage> {
     super.initState();
   }
 
-  void doSignUp() async {
+  void doSignIn() async {
     String email=_email.text.trim();
     String password=_password.text.trim();
-    String name=_name.text.trim();
-    String confirmPassword=_confirmPassword.text.trim();
 
-    if (email.isEmpty || password.isEmpty || name.isEmpty) return;
-    if (confirmPassword!=password) return;
+    if (email.isEmpty || password.isEmpty ) return;
 
-    await AuthService.signUp(email, password).then((value) => {
+    await AuthService.signIn(email, password).then((value) => {
       if (value!=null) {
-        register(value.uid),
         _flipController!.toggleCard(),
         timer=Timer.periodic(Duration(milliseconds: 1200), (timer) {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(),));
@@ -52,14 +43,6 @@ class _SignUpPageState extends State<SignUpPage> {
       }
     });
   }
-
-  void register(String uid) async {
-    String name=_name.text.trim();
-    Admin admin=Admin(fullName: name);
-    admin.uid=uid;
-    DataService.storeAdmin(admin);
-  }
-
 
 
   @override
@@ -73,7 +56,7 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             children: [
               Container(
-                height: MediaQuery.of(context).size.height-30,
+                height: MediaQuery.of(context).size.height-50,
                 child: Column(
                   children: [
                     FlipCard(
@@ -81,29 +64,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       flipOnTouch: false,
                       front: Image(
                         height: MediaQuery.of(context).size.width-130,
-                        image: AssetImage("assets/images/signup.png"),
+                        image: AssetImage("assets/images/signin.png"),
                       ),
                       back: Image(
                         height: MediaQuery.of(context).size.width-200,
                         image: AssetImage("assets/images/ok.png"),
-                      ),
-                    ),
-                    SizedBox(height: 20,),
-                    //name
-                    Container(
-                      height: 45,
-                      padding: EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(7),
-                          border: Border.all(width: .5,color: Colors.purpleAccent)
-                      ),
-                      child: TextField(
-                        controller: _name,
-                        decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Name",
-                            hintStyle: TextStyle(color: Colors.grey.withOpacity(.7))
-                        ),
                       ),
                     ),
                     SizedBox(height: 10,),
@@ -143,35 +108,17 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                     SizedBox(height: 10,),
-                    //confirm password
-                    Container(
-                      height: 45,
-                      padding: EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(7),
-                          border: Border.all(width: .5,color: Colors.purpleAccent)
-                      ),
-                      child: TextField(
-                        controller: _confirmPassword,
-                        decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Confirm Password",
-                            hintStyle: TextStyle(color: Colors.grey.withOpacity(.7))
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10,),
                     MaterialButton(
                       height: 45,
                       minWidth: double.infinity,
                       onPressed: (){
-                        doSignUp();
+                        doSignIn();
                       },
                       shape: RoundedRectangleBorder(borderRadius:BorderRadius.circular(10),side: BorderSide(color: Colors.purpleAccent,width: 1)),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Text("Sign Up",style: TextStyle(fontSize: 18,fontFamily: "Aladin"),),
+                          Text("Sign In",style: TextStyle(fontSize: 18,fontFamily: "Aladin"),),
                           Icon(Icons.chevron_right)
                         ],
                       ),
@@ -189,9 +136,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     SizedBox(width: 10,),
                     TextButton(
                       onPressed: (){
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignInPage(),));
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpPage()));
                       },
-                      child: Text("Sign In",style: TextStyle(color: Colors.black,fontFamily: "Aladin",fontSize: 17),),
+                      child: Text("Sign Up",style: TextStyle(color: Colors.black,fontFamily: "Aladin",fontSize: 17),),
                     )
                   ],
                 ),

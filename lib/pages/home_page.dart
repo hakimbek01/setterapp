@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
+        physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
         onPageChanged: (value) {
           setState(() {
@@ -53,7 +54,7 @@ class _HomePageState extends State<HomePage> {
               child: GNav(
                 rippleColor: Colors.grey[300]!,
                 hoverColor: Colors.grey[100]!,
-                gap: 8,
+                gap: 10,
                 activeColor: Colors.black,
                 iconSize: 24,
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -66,14 +67,13 @@ class _HomePageState extends State<HomePage> {
                     text: 'Home',
                     iconActiveColor: Colors.white,
                     textStyle: TextStyle(color: Colors.white),
-                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
                     backgroundGradient: LinearGradient(
                         begin: Alignment.bottomLeft,
                         end: Alignment.topRight,
                         tileMode: TileMode.mirror,
                         colors: [
-                          Color.fromRGBO(252, 175, 69, .8),
-                          Color.fromRGBO(245, 96, 64, .9)
+                          Color.fromRGBO(248, 184, 225, 1.0),
+                          Color.fromRGBO(69, 172, 243, 1.0)
                         ]
                     ),
                   ),
@@ -82,14 +82,13 @@ class _HomePageState extends State<HomePage> {
                     text: 'Search',
                     iconActiveColor: Colors.white,
                     textStyle: TextStyle(color: Colors.white),
-                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
                     backgroundGradient: LinearGradient(
                         begin: Alignment.bottomLeft,
                         end: Alignment.topRight,
                         tileMode: TileMode.mirror,
                         colors: [
-                          Color.fromRGBO(252, 175, 69, .8),
-                          Color.fromRGBO(245, 96, 64, .9)
+                          Color.fromRGBO(248, 184, 225, 1.0),
+                          Color.fromRGBO(69, 172, 243, 1.0)
                         ]
                     ),
                   ),
@@ -98,14 +97,13 @@ class _HomePageState extends State<HomePage> {
                     icon: Icons.shopping_bag,
                     iconActiveColor: Colors.white,
                     textStyle: TextStyle(color: Colors.white),
-                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
                     backgroundGradient: LinearGradient(
                       begin: Alignment.bottomLeft,
                       end: Alignment.topRight,
                       tileMode: TileMode.mirror,
                       colors: [
-                        Color.fromRGBO(252, 175, 69, .8),
-                        Color.fromRGBO(245, 96, 64, .9)
+                        Color.fromRGBO(248, 184, 225, 1.0),
+                        Color.fromRGBO(69, 172, 243, 1.0)
                       ]
                     ),
                   ),
@@ -114,14 +112,13 @@ class _HomePageState extends State<HomePage> {
                     icon: CupertinoIcons.person_crop_circle,
                     iconActiveColor: Colors.white,
                     textStyle: TextStyle(color: Colors.white),
-                    activeBorder: Border.all(width: 1,color: Colors.deepOrange),
                     backgroundGradient: LinearGradient(
                       begin: Alignment.bottomLeft,
                       end: Alignment.topRight,
                       tileMode: TileMode.mirror,
                       colors: [
-                        Color.fromRGBO(252, 175, 69, .8),
-                        Color.fromRGBO(245, 96, 64, .9)
+                        Color.fromRGBO(248, 184, 225, 1.0),
+                        Color.fromRGBO(69, 172, 243, 1.0)
                       ]
                     ),
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:setterapp/pages/signin_page.dart';
 import 'package:setterapp/pages/signup_page.dart';
 import 'package:setterapp/service/auth_service.dart';
 
@@ -19,7 +20,7 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(Duration(seconds: 3));
     bool isLogged=AuthService.currentUser();
     if (!isLogged || isLogged==null) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignUpPage(),));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignInPage(),));
     }
     else {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomePage(),));
