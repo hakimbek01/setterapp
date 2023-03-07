@@ -31,4 +31,11 @@ class StoreService {
     String downloadUrl= await taskSnapshot.ref.getDownloadURL();
     return downloadUrl;
   }
+
+  static Future<void> removePostImage(List imageUrl) async {
+    for (var a in imageUrl) {
+      var v = _storage.storage.ref(a);
+      await v.delete();
+    }
+  }
 }

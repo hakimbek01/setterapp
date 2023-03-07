@@ -332,7 +332,7 @@ class _CreatePageState extends State<CreatePage> {
     String price="${_priceController.text} $priceType";
     List? images= await StoreService.uploadImage(_imagesList);
     if (name.isEmpty || content.isEmpty || price.isEmpty) return;
-    Product product=Product(category: _category,price: price,name: name,content: content,imgUrls: images,isAvailable: true,buyCount: int.parse(_priceController.text));
+    Product product=Product(date: DateTime.now().toString(),removeVisiable: false,category: _category,price: price,name: name,content: content,imgUrls: images,isAvailable: true,buyCount: int.parse(_priceController.text));
     setState(() {
       isLoading=true;
     });

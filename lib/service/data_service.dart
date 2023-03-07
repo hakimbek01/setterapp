@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' hide Query;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:setterapp/model/product_model.dart';
 import 'package:setterapp/service/auth_service.dart';
+import 'package:setterapp/service/store_service.dart';
 
 import '../model/admin_model.dart';
 
@@ -11,6 +12,7 @@ class DataService {
 
   static final _firestore=FirebaseFirestore.instance;
   static String folderAdmin="admin";
+  static String folderProduct="products";
 
   ///admins
   static Future storeAdmin(Admin admin) async {
@@ -42,15 +44,24 @@ class DataService {
 
   /// product
   static Future<String?> addProduct(Product product) async {
-    var doc = _firestore.collection("Products").doc();
+    var doc = _firestore.collection(folderProduct).doc();
     product.id = doc.id;
     doc.set(product.toJson());
     return product.id;
   }
 
-  static Future<List<Product>> getProduct() async {
+  static Future<List<Product>> getProduct({int count = 4}) async {
     List<Product> p = [];
-    var docs= await _firestore.collection("Products").get();
+    var docs= await _firestore.collection(folderProduct).limit(count).get();
+    for (var a in docs.docs) {
+      p.add(Product.fromJson(a.data()));
+    }
+    return p;
+  }
+
+  static Future<List<Product>> getStatistic() async {
+    List<Product> p = [];
+    var docs= await _firestore.collection(folderProduct).get();
     for (var a in docs.docs) {
       p.add(Product.fromJson(a.data()));
     }
@@ -58,11 +69,14 @@ class DataService {
   }
 
   static Future updateProduct(Product product) async {
-    await _firestore.collection("Products").doc(product.id).update(product.toJson());
+    await _firestore.collection(folderProduct).doc(product.id).update(product.toJson());
   }
 
-  static Future removeProduct(String id) async {
-    var docs= await _firestore.collection("Products").doc(id).delete();
+  static Future removeProduct(List ids,List imgProduct) async {
+    await StoreService.removePostImage(imgProduct);
+    for (var id in ids) {
+      await _firestore.collection(folderProduct).doc(id).delete();
+    }
   }
 
 

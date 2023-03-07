@@ -10,6 +10,7 @@ import 'package:setterapp/pages/signup_page.dart';
 import 'package:setterapp/pages/update_page.dart';
 import 'package:setterapp/service/auth_service.dart';
 import 'package:setterapp/service/data_service.dart';
+import 'package:setterapp/service/utils_service.dart';
 
 import '../model/product_model.dart';
 import '../service/prefs_service.dart';
@@ -25,151 +26,222 @@ class _ProductsPageState extends State<ProductsPage> {
 
   List<Product> items=[];
   List<String> category=[];
+  String appBarTitle="Mahsulotlar";
   bool isSeries=true;
-  bool visiableProduct=false;
+  bool visiableProduct=true;
   bool remove=false;
-
+  bool removeVisiable=false;
+  int removeProductCount=0;
+  List removeProductsId=[];
+  bool isLoading=false;
+  int count = 4;
+  List<dynamic> removeImgUrl=[];
   @override
   void initState() {
-    getProducts();
     getCategory();
+    getProducts();
     super.initState();
   }
 
 
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await getProducts();
-          },
-          child: Column(
-            children: [
-              SizedBox(height: 10,),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    InkWell(
-                      onTap: (){
-                        setState(() {
-                          visiableProduct=true;
-                          isSeries=true;
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                            border: visiableProduct?Border.all(width: .6,color: Colors.blue): Border(),
-                          borderRadius: BorderRadius.circular(7)
-                        ),
-                        child: Image(
-                          height: 40,
-                          image: AssetImage("assets/buttons/all.png"),
-                        )
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            iconTheme: IconThemeData(
+              color: Colors.black54
+            ),
+            backgroundColor: removeVisiable? Colors.grey.shade300: Colors.white,
+            title: removeVisiable?
+            Text(removeProductCount.toString(),style: TextStyle(color: Colors.black54),):
+            Row(
+              children: [
+                PopupMenuButton(
+                  child: Text(appBarTitle,style: TextStyle(color: Colors.black),),
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem(
+                        child: Text("Mahsulotlar"),
+                        onTap: (){
+                          setState(() {
+                            appBarTitle="Mahsulotlar";
+                            visiableProduct=true;
+                            isSeries=true;
+                          });
+                          getProducts();
+                        },
                       ),
-                    ),
-
-                    InkWell(
-                      onTap: (){
-                        setState(() {
-                          visiableProduct=false;
-                          isSeries=false;
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          border: visiableProduct? Border():Border.all(width: .6,color: Colors.blue),
-                          borderRadius: BorderRadius.circular(7)
-                        ),
-                        child: Image(
-                          height: 40,
-                          image: AssetImage('assets/buttons/category.png'),
-                        ),
-                      ),
-                    ),
-
-                    InkWell(
-                      onTap: () async {
-                        await Navigator.push(context, CupertinoPageRoute(builder: (context) => CreatePage(),));
-                        getProducts();
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(7)
-                        ),
-                        child: Image(
-                          height: 40,
-                          image: AssetImage('assets/buttons/add.png'),
-                        ),
-                      ),
-                    ),
-
-                    visiableProduct?
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          isSeries=!isSeries;
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(7)
-                        ),
-                        child: isSeries?
-                        Image(
-                          height: 40,
-                          image: AssetImage('assets/buttons/series_2.png'),
-                        ):
-                        Image(
-                          height: 40,
-                          image: AssetImage('assets/buttons/series_1.png'),
-                        )
-                        ,
-                      ),
-                    ):
-                    SizedBox()
-                  ],
+                      PopupMenuItem(
+                        child: Text("Category"),
+                        onTap: (){
+                          setState(() {
+                            appBarTitle="Category";
+                            visiableProduct=false;
+                            isSeries=false;
+                          });
+                        },
+                      )
+                    ];
+                  },
                 ),
-              ),
-              Expanded(
-                child: visiableProduct?
-                GridView.count(
-                  crossAxisCount: isSeries?2:1,
-                  childAspectRatio: isSeries?2/2.4:5.5/1,
-                  mainAxisSpacing: 10,
-                  children: items.map((e) {
-                    return itemOfProduct(e);
-                  }).toList(),
-                ):
-                ListView(
-                  children: category.map((e) {
-                    return itemOfCategory(e);
-                  }).toList(),
+                SizedBox(width: 5,),
+                Icon(CupertinoIcons.chevron_down,)
+              ],
+            ),
+
+            actions: [
+              visiableProduct && !removeVisiable?
+              GestureDetector(
+                onTap: (){
+                  setState(() {
+                    isSeries=!isSeries;
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(10),
+                  child: isSeries?
+                  Image(
+                    height: 30,
+                    image: AssetImage('assets/buttons/series_2.png'),
+                  ):
+                  Image(
+                    height: 30,
+                    image: AssetImage('assets/buttons/series_1.png'),
+                  ),
                 ),
-              )
+              ):
+              SizedBox(),
+
+              removeVisiable?
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: (){
+                      setState(() {
+                        removeVisiable=false;
+                        removeProductCount=0;
+                      });
+                    },
+                    icon: Icon(Icons.close,color: Colors.red,),
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      if (removeProductCount!=0) {
+                        bool yes= await Utils.commonDialog(context, "Mahsulotni o'chirish", "Haqiqatdan bu mahsulotlarni o'chirasizmi?", "HA", "Yo'q");
+                        if (yes) {
+                          setState(() {
+                            isLoading=true;
+                          });
+                          removeMoreProducts(removeProductsId,removeImgUrl);
+                        }
+                      }
+                    },
+                    icon: Icon(Icons.check,color: Colors.green,),
+                  )
+                ],
+              ):
+              SizedBox()
             ],
           ),
+          body: SafeArea(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await getProducts();
+              },
+              child: Column(
+                children: [
+                  SizedBox(height: 10,),
+                  Expanded(
+                    child: visiableProduct?
+                    GridView.count(
+                      crossAxisCount: isSeries?2:1,
+                      childAspectRatio: isSeries?2/2.4:5.5/1,
+                      mainAxisSpacing: 10,
+                      children: items.map((e) {
+                        return itemOfProduct(e);
+                      }).toList(),
+                    ):
+                    ListView(
+                      children: category.map((e) {
+                        return itemOfCategory(e);
+                      }).toList(),
+                    ),
+                  ),
+
+                  !removeVisiable?
+                   Align(
+                     alignment: Alignment.bottomLeft,
+                     child: MaterialButton(
+                       height: 10,
+                       onPressed: (){
+                         getProducts();
+                       },
+                       child: Text("More"),
+                     ),
+                   ):
+                   SizedBox()
+                ],
+              ),
+            ),
+          ),
+          floatingActionButton: MaterialButton(
+            padding: EdgeInsets.zero,
+            minWidth: 0,
+            onPressed: () async {
+              await Navigator.push(context, CupertinoPageRoute(builder: (context) => CreatePage(),));
+              getCategory();
+              getProducts();
+            },
+            child: Image(
+              height: 47,
+              image: AssetImage('assets/buttons/add.png'),
+            ),
+          ),
         ),
-      ),
+        isLoading?
+        Scaffold(
+          backgroundColor: Colors.grey.withOpacity(.4),
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ):
+        SizedBox()
+      ],
     );
   }
 
+
   Widget itemOfProduct(Product product) {
-    return InkWell(
-      onTap: () async{
-        await Navigator.push(context, CupertinoPageRoute(builder: (context) => UpdatePage(product: product),));
-        getProducts();
+    removeVisiable==false? product.removeVisiable=false:null;
+    return removeVisiable?
+    //o'chirishi hohlanganproductla
+    InkWell(
+      onLongPress: () {
+        setState(() {
+          removeVisiable=true;
+        });
+      },
+      onTap: () async {
+        if (removeVisiable) {
+          setState(() {
+            product.removeVisiable = !(product.removeVisiable!);
+          });
+        }
+        if (product.removeVisiable!) {
+          removeProductCount++;
+          removeProductsId.add(product.id);
+          for (var a in product.imgUrls!) {
+            removeImgUrl.add(a);
+          }
+
+        } else {
+          removeProductCount--;
+          removeProductsId.remove(product.id);
+        }
       },
       child: isSeries?
       Container(
@@ -177,8 +249,192 @@ class _ProductsPageState extends State<ProductsPage> {
         clipBehavior: Clip.hardEdge,
         width: double.infinity,
         decoration: BoxDecoration(
-            border: Border.all(width: 1,color: Colors.deepPurpleAccent),
+            border: Border.all(width: 1.3,color: Colors.red),
             borderRadius: BorderRadius.circular(20)
+        ),
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: product.imgUrls!.isNotEmpty?
+                  Swiper(
+                    itemCount: product.imgUrls!.length,
+                    itemBuilder: (context, index) {
+                      return CachedNetworkImage(
+                        imageUrl: product.imgUrls![index],
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              Text("Yuklnamoqda...",style: TextStyle(fontSize: 12),)
+                            ],
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.highlight_remove,color: Colors.red,),
+                              Text("Xatolik yuz berdi!",style: TextStyle(fontSize: 12),)
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ):
+                  Image(
+                    image: AssetImage("assets/images/placeholder.png"),
+                  ),
+                ),
+                SizedBox(height: 5,),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(product.name!,maxLines: 1,style: TextStyle(overflow: TextOverflow.ellipsis,color: Colors.red,fontWeight: FontWeight.bold),)),
+                          Text(product.price!,style: TextStyle(fontWeight: FontWeight.bold),)
+                        ],
+                      ),
+                      Text(product.content!,maxLines: 3,textAlign: TextAlign.left,overflow: TextOverflow.ellipsis)
+                    ],
+                  ),
+                )
+              ],
+            ),
+            product.removeVisiable!?
+            Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                padding: EdgeInsets.all(1),
+                decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10),topRight: Radius.circular(19))
+                ),
+                child: Icon(Icons.delete,color: Colors.white.withOpacity(.9),),
+              ),
+            )
+            :SizedBox(),
+          ],
+        ),
+      ):
+      Container(
+        margin: EdgeInsets.symmetric(horizontal: 10),
+        clipBehavior: Clip.hardEdge,
+        width: double.infinity,
+        decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            border: Border.all(width: 1,color: Colors.red),
+            borderRadius: BorderRadius.circular(10)
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                width: 100,
+                child: product.imgUrls!.isNotEmpty?
+                Swiper(
+                  itemCount: product.imgUrls!.length,
+                  itemBuilder: (context, index) {
+                    return CachedNetworkImage(
+                      imageUrl: product.imgUrls![index],
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            Text("Yuklnamoqda...",style: TextStyle(fontSize: 12),)
+                          ],
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.highlight_remove,color: Colors.red,),
+                            Text("Xatolik yuz berdi!",style: TextStyle(fontSize: 12),)
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ):
+                Image(
+                  fit: BoxFit.cover,
+                  image: AssetImage("assets/images/placeholder.png"),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(product.name!,maxLines: 1,style: TextStyle(overflow: TextOverflow.ellipsis,color: Colors.red,fontWeight: FontWeight.bold),),
+                    Text(product.price!,style: TextStyle(fontWeight: FontWeight.bold),)
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(product.content!,maxLines: 3,style: TextStyle(color: Colors.black54,overflow: TextOverflow.ellipsis),)),
+              ),
+            ),
+            product.removeVisiable!?
+            Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                padding: EdgeInsets.all(1),
+                decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10),topRight: Radius.circular(10))
+                ),
+                child: Icon(Icons.delete,color: Colors.white.withOpacity(.9),),
+              ),
+            )
+            :SizedBox(),
+          ],
+        ),
+      ),
+    ):
+    InkWell(
+      onLongPress: () {
+        setState(() {
+          removeVisiable=true;
+        });
+      },
+      onTap: () async{
+        await Navigator.push(context, CupertinoPageRoute(builder: (context) => UpdatePage(product: product),));
+        getProducts();
+        getCategory();
+      },
+      child: isSeries?
+      // 2 qator bo'lib chiqishi
+      Container(
+        margin: EdgeInsets.symmetric(horizontal: 10),
+        clipBehavior: Clip.hardEdge,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          // border: Border.all(width: 1,color: Colors.deepPurpleAccent),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(color: Colors.grey,blurRadius: 2.5,offset: Offset(0,1)),
+            BoxShadow(color: Colors.grey,blurRadius: 1,offset: Offset(0,-.51)),
+          ]
         ),
         child: Stack(
           children: [
@@ -240,13 +496,13 @@ class _ProductsPageState extends State<ProductsPage> {
               alignment: Alignment.bottomRight,
               child: InkWell(
                 onTap: () {
-                  bottomMessage(product.id!);
+                  bottomMessage(product.id!,product.imgUrls!);
                 },
                 child: Container(
                   padding: EdgeInsets.all(1),
                   decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10),bottomRight: Radius.circular(10))
+                      color: Colors.red,
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(10),bottomRight: Radius.circular(10))
                   ),
                   child: Icon(Icons.delete,color: Colors.white.withOpacity(.9),),
                 ),
@@ -255,14 +511,15 @@ class _ProductsPageState extends State<ProductsPage> {
           ],
         ),
       ):
+      // 1 qator bo'lib chiqishi
       Container(
         margin: EdgeInsets.symmetric(horizontal: 10),
         clipBehavior: Clip.hardEdge,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          border: Border.all(width: .7,color: Colors.purpleAccent.shade100),
-          borderRadius: BorderRadius.circular(10)
+            color: Colors.grey.shade100,
+            border: Border.all(width: .7,color: Colors.purpleAccent.shade100),
+            borderRadius: BorderRadius.circular(10)
         ),
         child: Row(
           children: [
@@ -320,15 +577,15 @@ class _ProductsPageState extends State<ProductsPage> {
               child: Padding(
                 padding: EdgeInsets.all(8),
                 child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(product.content!,maxLines: 3,style: TextStyle(color: Colors.black54,overflow: TextOverflow.ellipsis),)),
+                    alignment: Alignment.topLeft,
+                    child: Text(product.content!,maxLines: 3,style: TextStyle(color: Colors.black54,overflow: TextOverflow.ellipsis),)),
               ),
             ),
             Align(
               alignment: Alignment.bottomRight,
               child: IconButton(
                 onPressed: () async {
-                  bottomMessage(product.id!);
+                  bottomMessage(product.id!,product.imgUrls!);
                 },
                 icon: Icon(Icons.delete,color: Colors.black.withOpacity(.66),),
               ),
@@ -368,15 +625,24 @@ class _ProductsPageState extends State<ProductsPage> {
 
   // getProducts refreshindicatorga qo'yilgani uchun future qilingan
   Future<void> getProducts() async {
-    await DataService.getProduct().then((value) => {
+    count++;
+    await DataService.getProduct(count: count).then((value) => {
       setState((){
         items=value;
-      })
+        items.sort((p1, p2) {
+          return Comparable.compare(p1.date.toString(), p2.date.toString());
+        });
+        items=items.reversed.toList();
+      }),
+      for (var a in items) {
+        print(a.date)
+      }
     });
   }
 
   void getCategory() async {
     await RTDBService.getCategory().then((value) => {
+      print(value),
       setState((){
         category=value;
         PrefsService.storeCategory(category);
@@ -393,7 +659,7 @@ class _ProductsPageState extends State<ProductsPage> {
     });
   }
 
-  void bottomMessage(String id) async {
+  void bottomMessage(String id,List<dynamic> imgUrl) async {
     setState(() {
       remove=true;
     });
@@ -420,6 +686,7 @@ class _ProductsPageState extends State<ProductsPage> {
                     onPressed: (){
                       setState(() {
                         remove=false;
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
                       });
                     },
                     child: Text("Bekor qilish",style: TextStyle(color: Colors.blue,),)
@@ -433,14 +700,27 @@ class _ProductsPageState extends State<ProductsPage> {
         )
     );
     await Future.delayed(Duration(seconds: 3));
-    removeProduct(id, remove);
+    removeProduct(id,imgUrl, remove);
   }
 
-
-  void removeProduct(String id, bool remove) async {
+  void removeProduct(String id,List imgUrl, bool remove) async {
     if (remove) {
-      DataService.removeProduct(id);
+      await DataService.removeProduct([id],imgUrl);
       getProducts();
     }
+  }
+
+  void removeMoreProducts(List productsId,List imgUrl) async {
+    print(productsId);
+    print(imgUrl);
+    for (var a in productsId) {
+      await DataService.removeProduct(productsId,imgUrl);
+    }
+    removeVisiable=false;
+    removeProductCount=0;
+    setState(() {
+      isLoading=false;
+    });
+    getProducts();
   }
 }

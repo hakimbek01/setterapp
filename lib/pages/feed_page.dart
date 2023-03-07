@@ -58,22 +58,31 @@ class _FeedPageState extends State<FeedPage> {
                 border: Border.all(width: 1.7,color: Colors.blue.withOpacity(.6)),
                 borderRadius: BorderRadius.circular(20)
               ),
-              child: SfCircularChart(
-                tooltipBehavior: tooltipBehavior,
-                legend: Legend(
-                  isVisible: true,
-                  overflowMode: LegendItemOverflowMode.wrap
-                ),
-                series: [
-                  PieSeries(
-                    dataSource: statistikaList,
-                    xValueMapper: (datum, index) => statistikaList[index].category,
-                    yValueMapper: (datum, index) => statistikaList[index].buyCount,
-                    dataLabelSettings: DataLabelSettings(
-                      isVisible: true,
+              child: Stack(
+                children: [
+                  SfCircularChart(
+                    tooltipBehavior: tooltipBehavior,
+                    legend: Legend(
+                        isVisible: true,
+                        overflowMode: LegendItemOverflowMode.wrap
                     ),
-                    enableTooltip: true
-                  )
+                    series: [
+                      PieSeries(
+                          dataSource: statistikaList,
+                          xValueMapper: (datum, index) => statistikaList[index].category,
+                          yValueMapper: (datum, index) => statistikaList[index].buyCount,
+                          dataLabelSettings: DataLabelSettings(
+                            isVisible: true,
+                          ),
+                          enableTooltip: true
+                      )
+                    ],
+                  ),
+                  isLoading?
+                  Center(
+                    child: CupertinoActivityIndicator(radius: 20),
+                  ):
+                  SizedBox()
                 ],
               ),
             ),
@@ -100,7 +109,7 @@ class _FeedPageState extends State<FeedPage> {
     });
 
     /// bazaviy malumotlarni yani productlarni chaqirish
-    await DataService.getProduct().then((value) => {
+    await DataService.getStatistic().then((value) => {
       value.sort((a, b) => a.buyCount!.compareTo(b.buyCount!)),
       setState(() {
         list = value;

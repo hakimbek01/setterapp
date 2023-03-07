@@ -18,7 +18,7 @@ class StatistikInfoPage extends StatefulWidget {
 class _StatistikInfoPageState extends State<StatistikInfoPage> {
   List<Product> list = [];
   bool isLoading = true;
-  bool sfChartType=false;
+  bool sfChartType=true;
   late TooltipBehavior tooltipBehavior;
 
 
@@ -39,94 +39,106 @@ class _StatistikInfoPageState extends State<StatistikInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        iconTheme: IconThemeData(color: Colors.black),
-        title: Text("Statistik ma'lumotlar",style: TextStyle(color: Colors.black,fontFamily: "Aladin",fontSize: 25),),
-        actions: [
-            InkWell(
-              onTap: () {
-                setState(() {
-                  sfChartType=!sfChartType;
-                });
-              },
-              child: Padding(
-                padding: EdgeInsets.all(15),
-                child: sfChartType?
-                Image(
-                  image: AssetImage("assets/buttons/chart2.png"),
-                ):
-                Image(
-                  image: AssetImage("assets/buttons/chart1.png"),
-                ),
-              ),
-            )
-          ]
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 10,
-            ),
-            Container(
-              height: MediaQuery.of(context).size.width - 100,
-              width: double.infinity,
-              child: sfChartType?
-              SfCircularChart(
-                tooltipBehavior: tooltipBehavior,
-                legend: Legend(
-                    isVisible: true,
-                    overflowMode: LegendItemOverflowMode.wrap
-                ),
-                series: [
-                  PieSeries(
-                    dataSource: statistikaList,
-                    xValueMapper: (datum, index) => statistikaList[index].category,
-                    yValueMapper: (datum, index) => statistikaList[index].buyCount,
-                    dataLabelSettings: DataLabelSettings(
-                      isVisible: true,
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+              backgroundColor: Colors.white,
+              iconTheme: IconThemeData(color: Colors.black),
+              title: Text("Statistik ma'lumotlar",style: TextStyle(color: Colors.black,fontFamily: "Aladin",fontSize: 25),),
+              actions: [
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      sfChartType=!sfChartType;
+                    });
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(15),
+                    child: sfChartType?
+                    Image(
+                      image: AssetImage("assets/buttons/chart2.png"),
+                    ):
+                    Image(
+                      image: AssetImage("assets/buttons/chart1.png"),
                     ),
-                    enableTooltip: true,
-                  )
-                ],
-              ):
-              SfCartesianChart(
-                primaryXAxis: CategoryAxis(),
-                series: [
-                  StackedColumnSeries(
-                    dataSource: statistikaList,
-                    xValueMapper: (VisiableProductMoreBuy ch, _) => ch.category,
-                    yValueMapper: (VisiableProductMoreBuy ch, index) => ch.buyCount,
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topRight,
-                      colors: [
-                        Colors.deepPurple.withOpacity(.7),
-                        CupertinoColors.activeBlue.withOpacity(.8)
-                      ]
-                    )
                   ),
-                ],
-              ),
+                )
+              ]
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 10,
+                ),
+                Container(
+                  height: MediaQuery.of(context).size.width - 100,
+                  width: double.infinity,
+                  child: sfChartType?
+                  SfCircularChart(
+                    tooltipBehavior: tooltipBehavior,
+                    legend: Legend(
+                        isVisible: true,
+                        overflowMode: LegendItemOverflowMode.wrap
+                    ),
+                    series: [
+                      PieSeries(
+                        dataSource: statistikaList,
+                        xValueMapper: (datum, index) => statistikaList[index].category,
+                        yValueMapper: (datum, index) => statistikaList[index].buyCount,
+                        dataLabelSettings: DataLabelSettings(
+                          isVisible: true,
+                        ),
+                        enableTooltip: true,
+                      )
+                    ],
+                  ):
+                  SfCartesianChart(
+                    primaryXAxis: CategoryAxis(),
+                    series: [
+                      StackedColumnSeries(
+                          dataSource: statistikaList,
+                          xValueMapper: (VisiableProductMoreBuy ch, _) => ch.category,
+                          yValueMapper: (VisiableProductMoreBuy ch, index) => ch.buyCount,
+                          gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topRight,
+                              colors: [
+                                Colors.deepPurple.withOpacity(.7),
+                                CupertinoColors.activeBlue.withOpacity(.8)
+                              ]
+                          )
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                    height: 2,
+                    margin: EdgeInsets.symmetric(horizontal: 5),
+                    color: Colors.blueAccent),
+                SizedBox(height: 10,),
+                Container(
+                  margin: EdgeInsets.only(bottom: 20),
+                  child: Column(
+                    children: productInfo.map((e) {
+                      return itemOfProducts(e);
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
-            Container(
-                height: 2,
-                margin: EdgeInsets.symmetric(horizontal: 5),
-                color: Colors.blueAccent),
-            SizedBox(height: 10,),
-            Container(
-              margin: EdgeInsets.only(bottom: 20),
-              child: Column(
-                children: productInfo.map((e) {
-                  return itemOfProducts(e);
-                }).toList(),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        isLoading?
+        Scaffold(
+          backgroundColor: Colors.grey.withOpacity(.3),
+          body: Center(
+            child: CupertinoActivityIndicator(),
+          ),
+        ):
+        SizedBox()
+      ],
     );
   }
 
@@ -250,7 +262,7 @@ class _StatistikInfoPageState extends State<StatistikInfoPage> {
     });
 
     /// bazaviy malumotlarni yani productlarni chaqirish
-    await DataService.getProduct().then((value) => {
+    await DataService.getStatistic().then((value) => {
       value.sort((a, b) => a.buyCount!.compareTo(b.buyCount!)),
       setState(() {
         list = value;

@@ -42,8 +42,6 @@ class _UpdatePageState extends State<UpdatePage> {
   final ImagePicker _imagePicker=ImagePicker();
 
 
-
-
   @override
   void initState() {
     getCategory();
@@ -61,7 +59,7 @@ class _UpdatePageState extends State<UpdatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       appBar: AppBar(
         iconTheme: IconThemeData(
           color: Colors.black
@@ -147,9 +145,11 @@ class _UpdatePageState extends State<UpdatePage> {
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            border: Border.all(width: 1,color: Colors.deepOrange),
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.only(topLeft: Radius.circular(10),bottomLeft: Radius.circular(10))
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(topLeft: Radius.circular(10),bottomLeft: Radius.circular(10)),
+                            boxShadow: [
+                              BoxShadow(offset: Offset(0,1),blurRadius: 1.6,color: Colors.grey,)
+                            ]
                           ),
                           child: ListTile(
                             onTap: (){
@@ -164,9 +164,11 @@ class _UpdatePageState extends State<UpdatePage> {
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            border: Border.all(width: 1,color: Colors.deepOrange),
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.only(topRight: Radius.circular(10),bottomRight: Radius.circular(10))
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(topRight: Radius.circular(10),bottomRight: Radius.circular(10)),
+                            boxShadow: [
+                              BoxShadow(offset: Offset(0,1),blurRadius: 1.6,color: Colors.grey,)
+                            ]
                           ),
                           child: ListTile(
                             onTap: (){
@@ -349,7 +351,7 @@ class _UpdatePageState extends State<UpdatePage> {
     setState(() {
       isLoading=true;
     });
-    List? images= await StoreService.uploadImage(newImg);
+    List? images = await StoreService.uploadImage(newImg);
     for (var a in images) {
       imgUrls.add(a);
     }

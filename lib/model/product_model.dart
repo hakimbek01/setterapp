@@ -9,11 +9,13 @@ class Product {
   bool? isAvailable;
   int? buyCount;
   String? date;
+  bool? removeVisiable;
 
 
-  Product({this.date,this.content,this.buyCount,this.category,this.id,this.name,this.price,this.imgUrls,this.isAvailable});
+  Product({this.date,this.removeVisiable,this.content,this.buyCount,this.category,this.id,this.name,this.price,this.imgUrls,this.isAvailable});
 
   Product.fromJson(Map<String,dynamic> json) {
+    removeVisiable=json['removeVisiable'];
     date=json['date'];
     content=json['content'];
     imgUrls=json['imgUrls'];
@@ -26,6 +28,7 @@ class Product {
   }
 
   Map<String, dynamic> toJson() => {
+    "removeVisiable":removeVisiable,
     "content":content,
     "date":date,
     "imgUrls":imgUrls,
