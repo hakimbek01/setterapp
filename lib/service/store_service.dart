@@ -33,9 +33,9 @@ class StoreService {
   }
 
   static Future<void> removePostImage(List imageUrl) async {
+    print("imageUrl: $imageUrl");
     for (var a in imageUrl) {
-      var v = _storage.storage.ref(a);
-      await v.delete();
+      await _storage.storage.refFromURL(a).delete();
     }
   }
 }

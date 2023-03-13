@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_ui_firestore/firebase_ui_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:setterapp/pages/create_page.dart';
@@ -35,7 +37,7 @@ class _ProductsPageState extends State<ProductsPage> {
   List removeProductsId=[];
   bool isLoading=false;
   int count = 4;
-  List<dynamic> removeImgUrl=[];
+  List<dynamic> removeImgUrlList=[];
   @override
   void initState() {
     getCategory();
@@ -43,7 +45,9 @@ class _ProductsPageState extends State<ProductsPage> {
     super.initState();
   }
 
-
+  var pps = FirebaseFirestore.instance.collection("products").withConverter(
+      fromFirestore: (snapshot, options) => Product.fromJson(snapshot.data()!),
+      toFirestore: (value, options) => value.toJson(),);
 
 
   @override
@@ -124,6 +128,7 @@ class _ProductsPageState extends State<ProductsPage> {
                       setState(() {
                         removeVisiable=false;
                         removeProductCount=0;
+                        removeProductsId=[];
                       });
                     },
                     icon: Icon(Icons.close,color: Colors.red,),
@@ -131,12 +136,12 @@ class _ProductsPageState extends State<ProductsPage> {
                   IconButton(
                     onPressed: () async {
                       if (removeProductCount!=0) {
-                        bool yes= await Utils.commonDialog(context, "Mahsulotni o'chirish", "Haqiqatdan bu mahsulotlarni o'chirasizmi?", "HA", "Yo'q");
+                        bool yes= await Utils.commonDialog(context, "Mahsulotlarni o'chirish", "Haqiqatdan bu mahsulotlarni o'chirasizmi?", "HA", "Yo'q");
                         if (yes) {
                           setState(() {
                             isLoading=true;
                           });
-                          removeMoreProducts(removeProductsId,removeImgUrl);
+                          removeMoreProducts(removeProductsId,removeImgUrlList);
                         }
                       }
                     },
@@ -148,7 +153,36 @@ class _ProductsPageState extends State<ProductsPage> {
             ],
           ),
           body: SafeArea(
-            child: RefreshIndicator(
+            child:
+            visiableProduct ?
+            FirestoreQueryBuilder(
+              query: pps,
+              builder: (context, snapshot, child) {
+                return GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isSeries?2:1,
+                    childAspectRatio: isSeries?2/2.4:5.5/1,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: snapshot.docs.length,
+                  itemBuilder: (context, index) {
+                    bool more = snapshot.hasMore && index + 1 == snapshot.docs.length;
+                    if (more) {
+                      snapshot.fetchMore();
+                    }
+                    final user = snapshot.docs[index].data();
+                    return itemOfProduct(user);
+                  },
+                );
+              },
+            ) :
+            ListView(
+              children: category.map((e) {
+                return itemOfCategory(e);
+              }).toList(),
+            ),
+
+            /*child: RefreshIndicator(
               onRefresh: () async {
                 await getProducts();
               },
@@ -186,7 +220,7 @@ class _ProductsPageState extends State<ProductsPage> {
                    SizedBox()
                 ],
               ),
-            ),
+            ),*/
           ),
           floatingActionButton: MaterialButton(
             padding: EdgeInsets.zero,
@@ -216,26 +250,31 @@ class _ProductsPageState extends State<ProductsPage> {
 
 
   Widget itemOfProduct(Product product) {
-    removeVisiable==false? product.removeVisiable=false:null;
+    removeVisiable==false?
+    product.removeVisiable=false:true;
     return removeVisiable?
     //o'chirishi hohlanganproductla
     InkWell(
-      onLongPress: () {
-        setState(() {
-          removeVisiable=true;
-        });
-      },
       onTap: () async {
-        if (removeVisiable) {
+        if (product.removeVisiable!) {
           setState(() {
-            product.removeVisiable = !(product.removeVisiable!);
+            product.removeVisiable = false;
           });
         }
+        if (!product.removeVisiable!) {
+          setState(() {
+            product.removeVisiable = true;
+          });
+        }
+
+        print(product.removeVisiable);
         if (product.removeVisiable!) {
-          removeProductCount++;
+          setState(() {
+            removeProductCount++;
+          });
           removeProductsId.add(product.id);
           for (var a in product.imgUrls!) {
-            removeImgUrl.add(a);
+            removeImgUrlList.add(a);
           }
 
         } else {
@@ -496,7 +535,7 @@ class _ProductsPageState extends State<ProductsPage> {
               alignment: Alignment.bottomRight,
               child: InkWell(
                 onTap: () {
-                  bottomMessage(product.id!,product.imgUrls!);
+                  cautionDialog(product.id!,product.imgUrls!);
                 },
                 child: Container(
                   padding: EdgeInsets.all(1),
@@ -585,7 +624,7 @@ class _ProductsPageState extends State<ProductsPage> {
               alignment: Alignment.bottomRight,
               child: IconButton(
                 onPressed: () async {
-                  bottomMessage(product.id!,product.imgUrls!);
+                  cautionDialog(product.id!,product.imgUrls!);
                 },
                 icon: Icon(Icons.delete,color: Colors.black.withOpacity(.66),),
               ),
@@ -634,15 +673,11 @@ class _ProductsPageState extends State<ProductsPage> {
         });
         items=items.reversed.toList();
       }),
-      for (var a in items) {
-        print(a.date)
-      }
     });
   }
 
   void getCategory() async {
     await RTDBService.getCategory().then((value) => {
-      print(value),
       setState((){
         category=value;
         PrefsService.storeCategory(category);
@@ -659,68 +694,36 @@ class _ProductsPageState extends State<ProductsPage> {
     });
   }
 
-  void bottomMessage(String id,List<dynamic> imgUrl) async {
+  void cautionDialog(String id,List<dynamic> imgUrl) async {
     setState(() {
       remove=true;
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: Duration(seconds: 3),
-          clipBehavior: Clip.hardEdge,
-          padding: EdgeInsets.zero,
-          content: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(10)
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 10),
-                  child: Text("Mahsulotni o'chirishni "),
-                ),
-                TextButton(
-                    onPressed: (){
-                      setState(() {
-                        remove=false;
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      });
-                    },
-                    child: Text("Bekor qilish",style: TextStyle(color: Colors.blue,),)
-                )
-              ],
-            ),
-          ),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor:Colors.transparent,
-          elevation: 0,
-        )
-    );
+    remove = await Utils.commonDialog(context, "Mahsulotni o'chirish", "Haqiqatdan bu mahsulotni o'chirasizmi?", "HA", "Yo'q");
     await Future.delayed(Duration(seconds: 3));
-    removeProduct(id,imgUrl, remove);
+    if (remove) {
+      print(id);
+      print(imgUrl);
+      removeProduct(id,imgUrl,);
+    }
   }
 
-  void removeProduct(String id,List imgUrl, bool remove) async {
-    if (remove) {
+  void removeProduct(String id,List imgUrl,) async {
       await DataService.removeProduct([id],imgUrl);
+      print("Successfully removed");
+      Utils.fToast("Muvofiqiyatli o'chirildi");
       getProducts();
-    }
   }
 
   void removeMoreProducts(List productsId,List imgUrl) async {
     print(productsId);
-    print(imgUrl);
-    for (var a in productsId) {
-      await DataService.removeProduct(productsId,imgUrl);
-    }
+    await DataService.removeProduct(productsId,imgUrl);
     removeVisiable=false;
     removeProductCount=0;
     setState(() {
       isLoading=false;
     });
+    print("Successfully removed");
+    Utils.fToast("Muvofiqiyatli o'chirildi");
     getProducts();
   }
 }

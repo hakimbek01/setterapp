@@ -37,8 +37,9 @@ class _UpdatePageState extends State<UpdatePage> {
   List<String> categories = [];
   bool isLoading=false;
   List imgUrls=[];
-  List newImg=[];
-  File? _image;
+  List newImages=[];
+  List fileImages=[];
+
   final ImagePicker _imagePicker=ImagePicker();
 
 
@@ -52,6 +53,7 @@ class _UpdatePageState extends State<UpdatePage> {
     _price.text=widget.product!.price!.split(" ").first;
     _category=widget.product!.category!;
     imgUrls = widget.product!.imgUrls!;
+    newImages = List.from(imgUrls);
     super.initState();
   }
 
@@ -59,7 +61,6 @@ class _UpdatePageState extends State<UpdatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.white,
       appBar: AppBar(
         iconTheme: IconThemeData(
           color: Colors.black
@@ -83,16 +84,31 @@ class _UpdatePageState extends State<UpdatePage> {
             Container(
               height: MediaQuery.of(context).size.width-70,
               width: MediaQuery.of(context).size.width,
-              child: widget.product!.imgUrls!.isNotEmpty?
+              child: newImages.isNotEmpty?
               Swiper(
                   pagination: SwiperPagination(),
-                  itemCount: widget.product!.imgUrls!.length,
+                  itemCount: newImages.length,
                   itemBuilder: (context, index) {
                     return Stack(
                         children: [
+                          (newImages[index]) is File?
+                          Stack(
+                            children: [
+                              Image(
+                                width: MediaQuery.of(context).size.width,
+                                fit: BoxFit.cover,
+                                image: FileImage(newImages[index]),
+                              ),
+                              isLoading?
+                              Center(
+                                child: CircularProgressIndicator(),
+                              ):
+                              SizedBox()
+                            ],
+                          ):
                           CachedNetworkImage(
                             width: MediaQuery.of(context).size.width,
-                            imageUrl: widget.product!.imgUrls![index],
+                            imageUrl: newImages[index],
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Center(child: CircularProgressIndicator(),),
                             errorWidget: (context, url, error) => Center(child: Icon(Icons.highlight_remove,color: Colors.red,),),
@@ -102,7 +118,8 @@ class _UpdatePageState extends State<UpdatePage> {
                             child: GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  imgUrls.remove(widget.product!.imgUrls![index]);
+                                  imgUrls.remove(newImages[index]);
+                                  newImages.remove(newImages[index]);
                                 });
                               },
                               child: Container(
@@ -296,6 +313,12 @@ class _UpdatePageState extends State<UpdatePage> {
 
 
   void updateProductInfo() async {
+    await StoreService.uploadImage(fileImages).then((value) => {
+      for (var a in value) {
+        imgUrls.add(a)
+      },
+    });
+
     Product product=Product(
         isAvailable: isAvailable,
         imgUrls: imgUrls,
@@ -306,7 +329,7 @@ class _UpdatePageState extends State<UpdatePage> {
         category: widget.product!.category,
         buyCount: 1,
     );
-    DataService.updateProduct(product);
+    await DataService.updateProduct(product);
     Admin? admin=await DataService.loadAdmin();
     List myProducts=admin!.placedProduct;
     MyWork myWork=MyWork(id: product.id,date: DateTime.now().toString(),status: "update");
@@ -340,40 +363,40 @@ class _UpdatePageState extends State<UpdatePage> {
   }
 
   void openGallery() async {
+    setState(() {
+      isLoading=true;
+    });
+
     XFile? image=await _imagePicker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 50
     );
     setState(() {
-      newImg.add(File(image!.path));
+      newImages.add(File(image!.path));
     });
 
-    setState(() {
-      isLoading=true;
-    });
-    List? images = await StoreService.uploadImage(newImg);
-    for (var a in images) {
-      imgUrls.add(a);
-    }
+    fileImages.add(File(image!.path));
+
     setState(() {
       isLoading=false;
     });
   }
 
   void openCamera() async {
+    setState(() {
+      isLoading=true;
+    });
+
     XFile? image = await _imagePicker.pickImage(
       source: ImageSource.camera,
       imageQuality: 50,
     );
 
     setState(() {
-      newImg.add(File(image!.path));
+      newImages.add(File(image!.path));
     });
 
-    List? images=await StoreService.uploadImage(newImg);
-    for (var a in images) {
-      imgUrls.add(a);
-    }
+    fileImages.add(File(image!.path));
 
     setState(() {
       isLoading=false;

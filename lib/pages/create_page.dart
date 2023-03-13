@@ -11,6 +11,7 @@ import 'package:setterapp/pages/feed_page.dart';
 import 'package:setterapp/service/data_service.dart';
 
 import '../service/store_service.dart';
+import '../service/utils_service.dart';
 
 class CreatePage extends StatefulWidget {
   const CreatePage({Key? key}) : super(key: key);
@@ -25,7 +26,7 @@ class _CreatePageState extends State<CreatePage> {
   final TextEditingController _content=TextEditingController();
   final TextEditingController _createCategory=TextEditingController();
   String priceType="USD";
-  String _category="Category";
+  String _category="Category tanlash";
   final List _imagesList=[];
   bool isLoading=false;
 
@@ -34,7 +35,7 @@ class _CreatePageState extends State<CreatePage> {
   bool typePrice=true;
 
   List<PopupMenuEntry<dynamic>> popupMenuItem = [];
-  List categories = ["ghbhb"];
+  List categories = [];
 
 
   void createPopupMenu() {
@@ -330,18 +331,37 @@ class _CreatePageState extends State<CreatePage> {
     String name=_name.text;
     String content=_content.text;
     String price="${_priceController.text} $priceType";
-    List? images= await StoreService.uploadImage(_imagesList);
-    if (name.isEmpty || content.isEmpty || price.isEmpty) return;
-    Product product=Product(date: DateTime.now().toString(),removeVisiable: false,category: _category,price: price,name: name,content: content,imgUrls: images,isAvailable: true,buyCount: int.parse(_priceController.text));
+
+    if (name.isEmpty || content.isEmpty || price.isEmpty || _category=="Category tanlash" || _imagesList.isEmpty) {
+     Utils.fToast("Malumotlar to'liq kiritilmagan!");
+     return;
+    }
+
     setState(() {
       isLoading=true;
     });
-    DataService.addProduct(product).then((value) => {
+
+    List? images= await StoreService.uploadImage(_imagesList);
+
+    Product product=Product(
+        date: DateTime.now().toString(),
+        removeVisiable: false,
+        category: _category,
+        price: price,
+        name: name,
+        content: content,
+        imgUrls: images,
+        isAvailable: true,
+        buyCount: int.parse(_priceController.text)
+    );
+
+    await DataService.addProduct(product).then((value) => {
       addMyProduct(value!),
-      Navigator.pop(context),
+      Utils.fToast("Yangi mahsulot qo'shildi"),
       setState(() {
         isLoading=false;
-      })
+      }),
+      Navigator.pop(context),
     });
   }
 

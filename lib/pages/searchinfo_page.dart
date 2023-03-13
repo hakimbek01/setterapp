@@ -40,12 +40,23 @@ class _SearchInfoPageState extends State<SearchInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         iconTheme: IconThemeData(
           color: Colors.black
         ),
         backgroundColor: Colors.white,
-        title: Text("Shu tipdagi mahsulotlar",style: TextStyle(fontFamily: "Aladin",color: Colors.black,fontSize: 20),),
+        title: Text(widget.categoryName!,style: TextStyle(fontFamily: "Aladin",color: Colors.black,fontSize: 20),),
+        actions: [
+          IconButton(
+            onPressed: (){},
+            icon: Icon(Icons.edit,color: Colors.blue,),
+          ),
+          IconButton(
+            onPressed: (){},
+            icon: Icon(Icons.delete,color: Colors.red,),
+          )
+        ],
       ),
       body: ListView(
         children: product.map((e) {
@@ -66,26 +77,33 @@ class _SearchInfoPageState extends State<SearchInfoPage> {
         height: MediaQuery.of(context).size.width/5,
         width: double.infinity,
         margin: EdgeInsets.only(right: 10,left: 10,bottom: 10),
+        clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          border: Border.all(width: 1,color: Colors.red),
-          borderRadius: BorderRadius.circular(5)
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(color: Colors.grey,blurRadius: 2.5,offset: Offset(0,1)),
+              BoxShadow(color: Colors.grey,blurRadius: 1,offset: Offset(0,-.51)),
+            ]
         ),
         child: Row(
           children: [
             product.imgUrls!.isNotEmpty?
             CachedNetworkImage(
               width: 80,
+              height: MediaQuery.of(context).size.width/5,
               fit: BoxFit.cover,
               imageUrl: product.imgUrls![0],
               placeholder: (context, url) => Center(child: CircularProgressIndicator(),),
               errorWidget: (context, url, error) => Center(child: Icon(Icons.highlight_remove,color: Colors.red,),),
               ):
-              Image(
-                width: 80,
-                fit: BoxFit.cover,
-                image: AssetImage("assets/images/placeholder.png"),
-              )
-            ,
+            Image(
+              height: MediaQuery.of(context).size.width/5,
+              width: 80,
+              fit: BoxFit.cover,
+              image: AssetImage("assets/images/placeholder.png"),
+            ),
+
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
